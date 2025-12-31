@@ -92,9 +92,3 @@ The model is evaluated using standard metrics:
 *(Run `train_model.py` to see the latest performance metrics in the terminal.)*
 
 ---
-
-## 👨‍💻 Author
-
-**TAY CHING XIAN**
-
-*Developed for Bioinformatics Mini Project.*

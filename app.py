@@ -627,6 +627,27 @@ with tab2:
                         st.markdown("---")
                         st.markdown("### 📋 Batch Prediction Results")
                         st.dataframe(results_df, use_container_width=True)
+
+                        # Show full doctor-style explanation for a selected row (avoids dataframe truncation)
+                        st.markdown("---")
+                        st.markdown("### 🩺 Doctor-style explanation (batch)")
+                        st.caption("The table view truncates long text. Select a row index below to view the full explanation.")
+
+                        if len(results_df) > 0:
+                            row_idx = st.number_input(
+                                "Row index to explain",
+                                min_value=0,
+                                max_value=int(len(results_df) - 1),
+                                value=0,
+                                step=1,
+                            )
+                            r = results_df.iloc[int(row_idx)]
+
+                            st.write(f"**Summary:** {r['Explanation_Summary']}")
+                            st.caption(
+                                f"Risk tier: {str(r['Explanation_Risk_Tier']).title()} • Combined malignant probability: {float(r['Combined_Malignant_Prob']):.2%}"
+                            )
+                            st.warning(str(r["Explanation_Next_Steps"]), icon="📌")
                         
                         # Download results
                         csv = results_df.to_csv(index=False)

@@ -84,36 +84,27 @@ def explain_prediction(
     prefix = f"{patient_name}, " if patient_name else ""
 
     if label == "benign":
-        summary = prefix + "this result suggests a lower chance of cancer."
+        summary = prefix + "the result looks low risk."
         details = (
-            "Based on the pattern in your inputs, the model gives a low-to-moderate "
-            "probability that the tumor is malignant. This is reassuring, but it is not a diagnosis. "
-            "In real care, a clinician would combine this with symptoms, imaging, and (when needed) biopsy."
+            "The model estimates a low chance that this is malignant. "
+            "That’s reassuring, but it’s not a final diagnosis."
         )
         next_steps = (
-            "If you have symptoms or ongoing concern, arrange follow-up with a clinician. "
-            "If this is just a learning demo, try adjusting one feature at a time and watch how the probability changes."
+            "If you have symptoms, a new lump, or ongoing worry, please see a clinician for a proper exam and imaging."
         )
     else:
-        summary = prefix + "this result suggests a higher chance of cancer, so further checks are important."
+        summary = prefix + "the result looks higher risk."
         details = (
-            "The model score is above the decision cutoff, so it flags this case as higher risk. "
-            "This does not confirm cancer by itself, but it does mean the situation deserves prompt clinical evaluation."
+            "The model estimates a higher chance that this is malignant. "
+            "This does not confirm cancer, but it means you should get checked soon."
         )
         next_steps = (
-            "Typical next steps in real care may include diagnostic imaging and/or referral to a specialist "
-            "to decide whether a biopsy is needed. Please discuss this result with a qualified clinician."
+            "Please arrange a clinical review. In real care this is usually followed by imaging, and sometimes a biopsy."
         )
 
     if risk_tier == "indeterminate":
-        details = (
-            "The probability is close to the cutoff, which makes the result less clear-cut. "
-            + details
-        )
-        next_steps = (
-            "Because the score is near the cutoff, follow-up testing and clinical context become especially important. "
-            + next_steps
-        )
+        details = "This result is close to the cutoff, so it’s not clear-cut. " + details
+        next_steps = "Because it’s borderline, follow-up and clinical context matter more. " + next_steps
 
     agreement_note: Optional[str] = None
     if other_model_malignant_probability is not None:
@@ -122,8 +113,8 @@ def explain_prediction(
         label2 = "malignant" if p2 >= thr else "benign"
         if label2 != label or abs(p - p2) >= 0.25:
             agreement_note = (
-                f"Note: {other_model_name} gives a meaningfully different risk estimate. "
-                "When models disagree, the safest approach is to rely on clinical evaluation and confirmatory tests."
+                f"The two models do not agree ({other_model_name} differs). "
+                "When models disagree, it’s safer to follow up with a clinician and confirm with proper tests."
             )
 
     return {

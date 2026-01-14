@@ -625,29 +625,98 @@ with tab2:
                         results_df["Explanation_Next_Steps"] = actions
                         
                         st.markdown("---")
-                        st.markdown("### 📋 Batch Prediction Results")
-                        st.dataframe(results_df, use_container_width=True)
+                        st.markdown("### 📋 Batch Prediction Results Summary")
+                        
+                        # Display overview statistics
+                        col1, col2, col3, col4 = st.columns(4)
+                        with col1:
+                            st.metric("Total Predictions", len(results_df))
+                        with col2:
+                            malignant_count = sum(results_df["LR_Diagnosis"] == "Malignant")
+                            st.metric("Malignant Cases", malignant_count)
+                        with col3:
+                            benign_count = sum(results_df["LR_Diagnosis"] == "Benign")
+                            st.metric("Benign Cases", benign_count)
+                        with col4:
+                            agreement_pct = (sum(results_df["Agreement"] == "Yes") / len(results_df)) * 100
+                            st.metric("Model Agreement", f"{agreement_pct:.1f}%")
+                        
+                        # Display simplified results table
+                        st.markdown("#### Quick Results Table")
+                        display_df = results_df[['LR_Diagnosis', 'LR_Malignant_Prob', 'SVM_Diagnosis', 
+                                                'SVM_Malignant_Prob', 'Combined_Malignant_Prob', 
+                                                'Explanation_Risk_Tier', 'Agreement']].copy()
+                        display_df.columns = ['LR Diagnosis', 'LR Prob', 'SVM Diagnosis', 
+                                             'SVM Prob', 'Combined Prob', 'Risk Tier', 'Agreement']
+                        # Format probabilities as percentages
+                        display_df['LR Prob'] = display_df['LR Prob'].map('{:.2%}'.format)
+                        display_df['SVM Prob'] = display_df['SVM Prob'].map('{:.2%}'.format)
+                        display_df['Combined Prob'] = display_df['Combined Prob'].map('{:.2%}'.format)
+                        st.dataframe(display_df, use_container_width=True)
 
-                        # Show full doctor-style explanation for a selected row (avoids dataframe truncation)
+                        # Show detailed explanations for each prediction
                         st.markdown("---")
-                        st.markdown("### 🩺 Explanation (easy to read)")
-                        st.caption("Pick a row number to see the full explanation.")
-
-                        if len(results_df) > 0:
-                            row_idx = st.number_input(
-                                "Row number",
-                                min_value=0,
-                                max_value=int(len(results_df) - 1),
-                                value=0,
-                                step=1,
-                            )
-                            r = results_df.iloc[int(row_idx)]
-
-                            st.write(f"**Summary:** {r['Explanation_Summary']}")
-                            st.caption(
-                                f"Risk tier: {str(r['Explanation_Risk_Tier']).title()} • Combined malignant probability: {float(r['Combined_Malignant_Prob']):.2%}"
-                            )
-                            st.info(str(r["Explanation_Next_Steps"]), icon="📌")
+                        st.markdown("### 🩺 Detailed Medical Interpretations")
+                        st.info("📌 **Important:** These interpretations are AI-generated educational insights and should NOT replace professional medical diagnosis. Always consult with healthcare providers for actual clinical decisions.", icon="⚠️")
+                        
+                        # Create expandable sections for each prediction
+                        for i in range(len(results_df)):
+                            r = results_df.iloc[i]
+                            
+                            # Determine the emoji and color based on diagnosis
+                            if r['LR_Diagnosis'] == 'Malignant':
+                                status_emoji = "🔴"
+                                status_color = "#ff4b4b"
+                            else:
+                                status_emoji = "🟢"
+                                status_color = "#00cc00"
+                            
+                            # Create expander title with key info
+                            agreement_status = "✅ Models Agree" if r['Agreement'] == 'Yes' else "⚠️ Models Disagree"
+                            expander_title = f"**Patient #{i+1}** {status_emoji} | Combined Probability: {r['Combined_Malignant_Prob']:.1%} | {agreement_status}"
+                            
+                            with st.expander(expander_title, expanded=(i==0)):
+                                # Create two columns for model results
+                                col1, col2 = st.columns(2)
+                                
+                                with col1:
+                                    st.markdown("##### 📊 Logistic Regression")
+                                    st.markdown(f"**Diagnosis:** {r['LR_Diagnosis']}")
+                                    st.progress(float(r['LR_Malignant_Prob']), text=f"Malignant: {r['LR_Malignant_Prob']:.2%}")
+                                    st.caption(f"Benign: {r['LR_Benign_Prob']:.2%} | Malignant: {r['LR_Malignant_Prob']:.2%}")
+                                
+                                with col2:
+                                    st.markdown("##### 🚀 SVM Model")
+                                    st.markdown(f"**Diagnosis:** {r['SVM_Diagnosis']}")
+                                    st.progress(float(r['SVM_Malignant_Prob']), text=f"Malignant: {r['SVM_Malignant_Prob']:.2%}")
+                                    st.caption(f"Benign: {r['SVM_Benign_Prob']:.2%} | Malignant: {r['SVM_Malignant_Prob']:.2%}")
+                                
+                                st.markdown("---")
+                                
+                                # Display comprehensive explanation
+                                st.markdown("##### 🩺 Clinical Interpretation")
+                                st.markdown(f"**Risk Assessment:** {str(r['Explanation_Risk_Tier']).upper()}")
+                                st.markdown(f"**Summary:** {r['Explanation_Summary']}")
+                                
+                                # Get full explanation for detailed text
+                                full_exp = explain_prediction(
+                                    float(r["Combined_Malignant_Prob"]),
+                                    threshold=0.5,
+                                    patient_name=f"Patient #{i+1}",
+                                    other_model_malignant_probability=float(r["SVM_Malignant_Prob"]),
+                                    other_model_name="SVM",
+                                )
+                                
+                                st.info(f"**Details:** {full_exp['details']}", icon="📋")
+                                st.warning(f"**Recommended Next Steps:** {full_exp['next_steps']}", icon="📌")
+                                
+                                if full_exp.get("agreement_note"):
+                                    st.error(f"**Model Disagreement Alert:** {full_exp['agreement_note']}", icon="⚠️")
+                                
+                                if r['Agreement'] == 'Yes':
+                                    st.success("✅ Both models agree on this diagnosis, increasing confidence in the prediction.", icon="✓")
+                                else:
+                                    st.warning("⚠️ Models disagree on this diagnosis. Clinical review is strongly recommended.", icon="⚠️")
                         
                         # Download results
                         csv = results_df.to_csv(index=False)

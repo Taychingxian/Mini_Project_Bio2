@@ -714,7 +714,7 @@ with tab2:
                                     st.error(f"**Model Disagreement Alert:** {full_exp['agreement_note']}", icon="⚠️")
                                 
                                 if r['Agreement'] == 'Yes':
-                                    st.success("✅ Both models agree on this diagnosis, increasing confidence in the prediction.", icon="✓")
+                                    st.success("✅ Both models agree on this diagnosis, increasing confidence in the prediction.")
                                 else:
                                     st.warning("⚠️ Models disagree on this diagnosis. Clinical review is strongly recommended.", icon="⚠️")
                         

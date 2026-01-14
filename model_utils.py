@@ -85,26 +85,120 @@ def explain_prediction(
 
     if label == "benign":
         summary = prefix + "the result looks low risk."
-        details = (
-            "The model estimates a low chance that this is malignant. "
-            "That’s reassuring, but it’s not a final diagnosis."
-        )
+        
+        # More detailed explanation based on probability ranges
+        if p < 0.20:
+            details = (
+                f"The machine learning model has analyzed the cellular features and calculated a malignant probability of {p:.1%}. "
+                "This is a very low risk score, suggesting the characteristics are strongly consistent with benign (non-cancerous) tissue. "
+                "The cell features analyzed—such as radius, texture, perimeter, area, smoothness, compactness, and concavity—show patterns "
+                "typical of normal or benign breast cells. However, this is a computational assessment based on numerical patterns, "
+                "not a clinical diagnosis. AI models can assist healthcare professionals but cannot replace proper medical examination."
+            )
+        elif p < 0.40:
+            details = (
+                f"The model has assigned a malignant probability of {p:.1%}, which falls in the low-to-moderate range. "
+                "The cellular characteristics show predominantly benign features, though some measurements may be slightly elevated "
+                "or fall in borderline ranges. This doesn't necessarily indicate cancer—many benign conditions (like fibroadenomas "
+                "or cysts) can produce similar patterns. The algorithm considers multiple cellular features including size, shape, "
+                "texture irregularities, and boundary characteristics. While the overall assessment leans toward benign, "
+                "clinical correlation with imaging and physical examination is essential for accurate diagnosis."
+            )
+        else:  # 0.40 to just below threshold
+            details = (
+                f"The calculated malignant probability is {p:.1%}, which is approaching the decision threshold of {thr:.1%}. "
+                "This indicates that while the classification suggests benign, there are some cellular features that show "
+                "characteristics occasionally seen in malignant cases. The model may have detected slight irregularities in "
+                "nuclear shape, texture variations, or other morphological features. This is a borderline case where the "
+                "distinction between benign and malignant patterns is less clear-cut. Such cases often benefit from additional "
+                "diagnostic procedures to rule out any possibility of malignancy with greater certainty."
+            )
+        
         next_steps = (
-            "If you have symptoms, a new lump, or ongoing worry, please see a clinician for a proper exam and imaging."
+            "🔍 **Recommended Actions:**\n"
+            "1. **Clinical Correlation:** Discuss these results with your healthcare provider along with your medical history, symptoms, and physical examination findings.\n"
+            "2. **Imaging Studies:** Your doctor may recommend mammography, ultrasound, or MRI to visually assess the tissue.\n"
+            "3. **Regular Monitoring:** Even with low-risk results, continue regular breast self-exams and scheduled screenings.\n"
+            "4. **Follow-up Timeline:** If you have any symptoms (new lumps, changes in breast tissue, discharge, or pain), "
+            "schedule an appointment promptly. Otherwise, follow standard screening guidelines for your age and risk profile.\n"
+            "5. **Lifestyle Factors:** Maintain healthy habits including regular exercise, balanced diet, and limiting alcohol intake."
         )
     else:
         summary = prefix + "the result looks higher risk."
-        details = (
-            "The model estimates a higher chance that this is malignant. "
-            "This does not confirm cancer, but it means you should get checked soon."
-        )
+        
+        # More detailed explanation for malignant predictions
+        if p >= 0.80:
+            details = (
+                f"The machine learning model has calculated a malignant probability of {p:.1%}, which is substantially above the decision threshold. "
+                "This high-risk score indicates that the analyzed cellular features show patterns strongly associated with malignant (cancerous) tissue. "
+                "The model likely detected significant irregularities in multiple features such as: larger and more irregular cell nuclei, "
+                "increased texture roughness, irregular cell boundaries (concavity), asymmetric cell shapes, and potentially increased cell density. "
+                "These characteristics are commonly observed in cancerous cells. **However, this is NOT a cancer diagnosis**—it is a risk "
+                "assessment based on computational analysis. Definitive diagnosis requires clinical examination, medical imaging (mammography/ultrasound/MRI), "
+                "and often histopathological examination of tissue samples (biopsy). False positives can occur, especially with certain benign conditions "
+                "that mimic malignant features."
+            )
+        elif p >= 0.60:
+            details = (
+                f"The model reports a malignant probability of {p:.1%}, indicating moderate-to-high risk. "
+                "The cellular features show several characteristics that raise concern for potential malignancy. The algorithm has identified "
+                "patterns in the cell measurements that are more commonly associated with cancerous tissue than benign conditions. "
+                "This could include irregularities in cell size and shape, increased nuclear-to-cytoplasm ratio, uneven texture distribution, "
+                "or jagged cell boundaries. While these findings warrant serious attention and prompt medical evaluation, they are not definitive. "
+                "Some aggressive benign lesions or atypical hyperplasia can also produce similar feature patterns. The key next step is clinical "
+                "investigation to determine the true nature of these findings through additional diagnostic procedures."
+            )
+        else:  # Just above threshold to 0.60
+            details = (
+                f"The malignant probability is calculated at {p:.1%}, which exceeds the threshold of {thr:.1%} but falls in the borderline-to-moderate risk range. "
+                "This suggests the presence of some cellular features that raise concern, though the evidence is not as strong as in high-confidence cases. "
+                "The model may have detected subtle abnormalities such as slight irregularities in cell morphology, minor asymmetries, or borderline measurements "
+                "in size and texture parameters. This zone of uncertainty is common in screening scenarios and highlights why AI tools should augment—not replace—"
+                "clinical judgment. Many factors can influence these borderline results, including sample quality, tissue density, and the presence of benign "
+                "conditions with overlapping features. This underscores the critical importance of comprehensive medical evaluation."
+            )
+        
         next_steps = (
-            "Please arrange a clinical review. In real care this is usually followed by imaging, and sometimes a biopsy."
+            "🩺 **Recommended Next Steps:**\n"
+            "1. **Immediate Clinical Review:** Schedule an appointment with your healthcare provider or a breast specialist (oncologist/surgical oncologist) as soon as possible. "
+            "Do not delay—early detection and diagnosis significantly improve treatment outcomes.\n"
+            "2. **Diagnostic Imaging:** Your physician will likely order comprehensive imaging studies:\n"
+            "   • **Diagnostic Mammography:** Detailed X-ray images of the breast tissue\n"
+            "   • **Breast Ultrasound:** Sound wave imaging to examine tissue density and fluid-filled vs solid masses\n"
+            "   • **MRI (if indicated):** Magnetic resonance imaging for more detailed soft tissue examination\n"
+            "3. **Tissue Biopsy:** If imaging shows suspicious findings, a biopsy (fine-needle aspiration, core needle biopsy, or surgical biopsy) "
+            "will be performed to obtain tissue samples for microscopic examination by a pathologist. This is the gold standard for diagnosis.\n"
+            "4. **Multidisciplinary Consultation:** Depending on findings, you may be referred to a team including radiologists, pathologists, "
+            "oncologists, and breast surgeons for comprehensive evaluation.\n"
+            "5. **Genetic Counseling (if appropriate):** If malignancy is confirmed or if you have a strong family history, genetic testing "
+            "for BRCA1/BRCA2 and other cancer-related genes may be recommended.\n"
+            "6. **Support Resources:** Consider reaching out to cancer support groups or patient advocacy organizations for emotional support and information.\n\n"
+            "⚠️ **Important Reminder:** Please arrange a clinical review. In real clinical care, this type of result is usually followed by diagnostic imaging "
+            "(mammography, ultrasound, or MRI), and often a tissue biopsy for definitive histopathological diagnosis. Early action is key."
         )
 
     if risk_tier == "indeterminate":
-        details = "This result is close to the cutoff, so it’s not clear-cut. " + details
-        next_steps = "Because it’s borderline, follow-up and clinical context matter more. " + next_steps
+        details = (
+            f"⚖️ **Borderline/Indeterminate Result:** This prediction falls very close to the decision threshold ({thr:.1%}), "
+            f"with a calculated probability of {p:.1%}. This represents a diagnostically challenging case where the cellular features "
+            "show a mixture of benign and potentially concerning characteristics, making clear classification difficult. "
+            "In such borderline situations, the AI model's confidence is lower, and clinical context becomes even more critical. "
+            "Factors such as patient age, family history, previous breast conditions, hormonal status, and the specific location and "
+            "presentation of the lesion all play crucial roles in interpretation. " + details + "\n\n"
+            "**Why borderline results occur:** Machine learning models are trained on historical data and learn to recognize patterns. "
+            "However, biological systems are complex, and some cases naturally fall in gray zones where features overlap between benign "
+            "and malignant categories. This doesn't indicate model failure—rather, it reflects the inherent complexity of breast pathology."
+        )
+        next_steps = (
+            "🔄 **Enhanced Follow-up for Borderline Cases:**\n"
+            "Because this result is indeterminate and sits close to the decision boundary, the following steps are particularly important:\n"
+            "1. **Comprehensive Clinical Assessment:** A thorough evaluation by a breast specialist who can integrate this computational result "
+            "with physical examination, patient history, and risk factors.\n"
+            "2. **Advanced Imaging:** Consider multiple imaging modalities for cross-verification (mammography + ultrasound + possibly MRI).\n"
+            "3. **Short-interval Follow-up:** Your physician may recommend a follow-up examination or imaging in 3-6 months to monitor for any changes.\n"
+            "4. **Consider Additional Biomarkers:** In some cases, additional laboratory tests or molecular markers may help clarify the diagnosis.\n"
+            "5. **Seek Second Opinion:** For borderline cases, consulting with multiple specialists can provide additional perspective.\n\n" + next_steps
+        )
 
     agreement_note: Optional[str] = None
     if other_model_malignant_probability is not None:
@@ -113,8 +207,18 @@ def explain_prediction(
         label2 = "malignant" if p2 >= thr else "benign"
         if label2 != label or abs(p - p2) >= 0.25:
             agreement_note = (
-                f"The two models do not agree ({other_model_name} differs). "
-                "When models disagree, it’s safer to follow up with a clinician and confirm with proper tests."
+                f"⚠️ **Model Disagreement Detected:** The two models show significant disagreement. "
+                f"The primary model calculated {p:.1%} malignant probability (classified as **{label}**), "
+                f"while the {other_model_name} calculated {p2:.1%} (classified as **{label2}**). "
+                f"This disagreement suggests that the case may have ambiguous or conflicting features that different algorithms interpret differently. "
+                "\n\n**What this means:** When machine learning models disagree, it often indicates a complex case that doesn't fit neatly into typical patterns. "
+                "This could be due to: (1) unusual combinations of cellular features, (2) image quality or measurement variability, "
+                "(3) the presence of rare or atypical pathology, or (4) features that genuinely fall in a gray zone between benign and malignant. "
+                "\n\n**Clinical Action Required:** Model disagreement is a strong signal that this case requires careful clinical review. "
+                "Do NOT rely solely on the computational prediction. It is essential to follow up with a clinician who can integrate these results "
+                "with imaging studies, physical examination findings, patient history, and additional diagnostic tests. "
+                "In cases of model disagreement, clinicians often proceed with more cautious or comprehensive evaluation, "
+                "potentially including second opinions from multiple specialists or additional tissue sampling to ensure accurate diagnosis."
             )
 
     return {

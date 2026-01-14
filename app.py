@@ -630,12 +630,12 @@ with tab2:
 
                         # Show full doctor-style explanation for a selected row (avoids dataframe truncation)
                         st.markdown("---")
-                        st.markdown("### 🩺 Doctor-style explanation (batch)")
-                        st.caption("The table view truncates long text. Select a row index below to view the full explanation.")
+                        st.markdown("### 🩺 Explanation (easy to read)")
+                        st.caption("Pick a row number to see the full explanation.")
 
                         if len(results_df) > 0:
                             row_idx = st.number_input(
-                                "Row index to explain",
+                                "Row number",
                                 min_value=0,
                                 max_value=int(len(results_df) - 1),
                                 value=0,
@@ -647,7 +647,7 @@ with tab2:
                             st.caption(
                                 f"Risk tier: {str(r['Explanation_Risk_Tier']).title()} • Combined malignant probability: {float(r['Combined_Malignant_Prob']):.2%}"
                             )
-                            st.warning(str(r["Explanation_Next_Steps"]), icon="📌")
+                            st.info(str(r["Explanation_Next_Steps"]), icon="📌")
                         
                         # Download results
                         csv = results_df.to_csv(index=False)

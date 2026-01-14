@@ -15,6 +15,9 @@ from sklearn.metrics import (accuracy_score, precision_score, recall_score,
 import warnings
 warnings.filterwarnings('ignore')
 
+# Patient-friendly explanation helper (rule-based)
+from model_utils import explain_prediction
+
 # Page configuration
 st.set_page_config(page_title="Breast Cancer Classification", layout="wide", page_icon="🔬")
 
@@ -540,6 +543,29 @@ with tab2:
                     st.success("✅ Both models agree on the diagnosis!")
                 else:
                     st.warning("⚠️ Models disagree on the diagnosis. Consider the probabilities carefully.")
+
+                # Doctor-style explanation (patient friendly)
+                st.markdown("---")
+                st.markdown("### 🩺 Doctor-style explanation")
+
+                # Use the average malignant probability as a simple combined score.
+                combined_p_malignant = float((lr_pred_proba[1] + svm_pred_proba[1]) / 2.0)
+
+                explain = explain_prediction(
+                    combined_p_malignant,
+                    threshold=0.5,
+                    patient_name=None,
+                    other_model_malignant_probability=float(svm_pred_proba[1]),
+                    other_model_name="SVM (vs Logistic Regression)",
+                )
+
+                # Show interpretation
+                st.write(f"**Summary:** {explain['summary']}")
+                st.caption(f"Risk tier: {str(explain['risk_tier']).title()} • Combined malignant probability: {explain['malignant_probability']:.2%}")
+                st.info(explain["details"], icon="🧾")
+                st.warning(explain["next_steps"], icon="📌")
+                if explain.get("agreement_note"):
+                    st.warning(explain["agreement_note"], icon="⚠️")
         
         else:  # Upload CSV
             st.markdown("### 📤 Upload Patient Data (CSV)")
@@ -575,6 +601,28 @@ with tab2:
                             'SVM_Malignant_Prob': svm_preds_proba[:, 1],
                             'Agreement': ['Yes' if lr_preds[i] == svm_preds[i] else 'No' for i in range(len(lr_preds))]
                         })
+
+                        # Add patient-friendly explanations per row (combined probability)
+                        combined_m = (results_df["LR_Malignant_Prob"] + results_df["SVM_Malignant_Prob"]) / 2.0
+                        results_df["Combined_Malignant_Prob"] = combined_m
+
+                        summaries = []
+                        actions = []
+                        tiers = []
+                        for i in range(len(results_df)):
+                            exp = explain_prediction(
+                                float(results_df.loc[i, "Combined_Malignant_Prob"]),
+                                threshold=0.5,
+                                other_model_malignant_probability=float(results_df.loc[i, "SVM_Malignant_Prob"]),
+                                other_model_name="SVM",
+                            )
+                            summaries.append(exp["summary"])
+                            actions.append(exp["next_steps"])
+                            tiers.append(exp["risk_tier"])
+
+                        results_df["Explanation_Summary"] = summaries
+                        results_df["Explanation_Risk_Tier"] = tiers
+                        results_df["Explanation_Next_Steps"] = actions
                         
                         st.markdown("---")
                         st.markdown("### 📋 Batch Prediction Results")

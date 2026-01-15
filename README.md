@@ -4,91 +4,195 @@
 [![Streamlit](https://img.shields.io/badge/Streamlit-FF4B4B?style=for-the-badge&logo=streamlit&logoColor=white)](https://streamlit.io/)
 [![Scikit-Learn](https://img.shields.io/badge/scikit--learn-F7931E?style=for-the-badge&logo=scikit-learn&logoColor=white)](https://scikit-learn.org/)
 
-An AI-powered web application designed to predict the likelihood of a breast tumor being **Benign** or **Malignant** based on cytological features. This tool utilizes a **Random Forest Classifier** trained on the Breast Cancer Wisconsin dataset.
+An AI-powered Streamlit app that estimates whether a breast tumor is **Benign** or **Malignant** using cytological features from the Breast Cancer Wisconsin dataset.
+
+> **Important (Medical Disclaimer):** This project is for education/demonstration only and is **not medical advice**.
+> Model outputs are probabilities and can be wrong. Clinical diagnosis requires qualified professionals and confirmatory tests.
+
+---
+
+## Jump to
+
+- [✨ Features](#-features)
+- [🚀 Quick start (PowerShell)](#-quick-start-powershell)
+- [🧠 How the prediction works](#-how-the-prediction-works)
+- [🧬 Input features](#-input-features)
+- [📸 Screenshots](#-screenshots)
+- [📂 Project structure](#-project-structure)
+- [🧯 Troubleshooting](#-troubleshooting)
+- [👨‍💻 Author](#-author)
 
 ---
 
 ## ✨ Features
 
-*   **Interactive Dashboard**: User-friendly interface built with Streamlit.
-*   **Real-time Prediction**: Instant classification results as you adjust feature sliders.
-*   **Visual Insights**: Displays prediction probabilities and key feature values.
-*   **Machine Learning**: Powered by a robust Random Forest model.
-*   **Data Preprocessing**: Includes automated feature scaling for accurate predictions.
+- **Interactive dashboard** built with Streamlit.
+- **Manual patient input** (numeric fields) and **CSV upload** (batch predictions).
+- **Probability output** for both classes + confidence-style visuals.
+- **Doctor-style explanation**: translates probabilities into plain-language guidance (rule-based risk tiers + model disagreement note).
+- **Model comparison (training tab)**: compares SVM vs Logistic Regression on the Wisconsin diagnostic dataset.
+
+<details>
+<summary><b>What makes this README “interactive”?</b></summary>
+
+- Collapsible sections you can open only when you need them
+- Copy/paste-ready commands for Windows PowerShell
+- Clear “what to do next” paths depending on whether your `.pkl` files exist
+
+</details>
 
 ---
 
-## 🧠 Model Information
+## 🚀 Quick start (PowerShell)
 
-The system uses a **Random Forest Classifier** trained on the **Breast Cancer Wisconsin (Diagnostic) Data Set**.
+### 1) Install dependencies
 
-*   **Algorithm**: Random Forest (Ensemble Learning)
-*   **Input Features**: 10 key cytological attributes (Mean values):
-    *   Radius, Texture, Perimeter, Area, Smoothness
-    *   Compactness, Concavity, Concave Points, Symmetry, Fractal Dimension
-*   **Target Classes**:
-    *   🟢 **Benign** (Non-cancerous)
-    *   🔴 **Malignant** (Cancerous)
+```powershell
+pip install -r requirements.txt
+```
 
----
+### 2) (Optional) Train / regenerate model files
 
-## 🚀 Quick Start
+If you don’t have `model.pkl` or `scaler.pkl`, run:
 
-### Prerequisites
+```powershell
+python train_model.py
+```
 
-Ensure you have Python installed.
+### 3) Run the Streamlit app
 
-### Installation
+```powershell
+streamlit run app.py
+```
 
-1.  **Clone the repository** (or download the files):
-    ```bash
-    cd Bio2_Mini_Project
-    ```
+Streamlit will typically open the browser automatically. If it doesn’t, look in the terminal output for the local URL (commonly `http://localhost:8501`).
 
-2.  **Install dependencies**:
-    ```bash
-    pip install -r requirements.txt
-    ```
+<details>
+<summary><b>Tip: Create a virtual environment (recommended)</b></summary>
 
-### Usage
+```powershell
+python -m venv .venv
+.\.venv\Scripts\Activate.ps1
+pip install -r requirements.txt
+```
 
-1.  **Train the Model** (Optional, if `.pkl` files are missing):
-    ```bash
-    python train_model.py
-    ```
-    *This will generate `model.pkl` and `scaler.pkl`.*
-
-2.  **Run the Application**:
-    ```bash
-    streamlit run app.py
-    ```
-
-3.  **Access the App**:
-    The application will open automatically in your browser at `http://localhost:8501`.
+</details>
 
 ---
 
-## 📂 Project Structure
+## 🧠 How the prediction works
+
+<details>
+<summary><b>Models used</b></summary>
+
+This app includes:
+
+- **SVM with GridSearchCV** (optimized)
+- **Logistic Regression** (baseline)
+
+In the prediction UI, both models produce probabilities, and the app also shows a **combined malignant probability** (simple average) for the doctor-style explanation.
+
+</details>
+
+<details>
+<summary><b>Doctor-style explanation</b></summary>
+
+The explanation text is **rule-based** (not a medical guideline): it takes the probability + threshold and returns:
+
+- a short **Summary**
+- a longer **Details** paragraph
+- and **Recommended next steps**
+
+If two models disagree strongly, it will add an extra note encouraging clinical follow-up.
+
+</details>
+
+---
+
+## 🧬 Input features
+
+The models use 10 mean features:
+
+- Radius, Texture, Perimeter, Area, Smoothness
+- Compactness, Concavity, Concave Points, Symmetry, Fractal Dimension
+
+<details>
+<summary><b>CSV upload format</b></summary>
+
+Your uploaded CSV should include columns matching the training feature names.
+
+If your CSV is missing columns, you’ll see an error during prediction.
+
+</details>
+
+---
+
+## 📸 Screenshots
+
+<details>
+<summary><b>Add your screenshots here</b></summary>
+
+- Put images in a folder like `assets/` and link them here.
+
+Example:
+
+```text
+assets/
+  training_tab.png
+  prediction_tab.png
+```
+
+</details>
+
+---
+
+## 📂 Project structure
 
 ```text
 Bio2_Mini_Project/
-├── app.py              # 🖥️ Main Streamlit application
-├── train_model.py      # ⚙️ Script to train and save the ML model
-├── model.pkl           # 🧠 Trained Random Forest model (generated)
-├── scaler.pkl          # ⚖️ Feature scaler (generated)
-├── requirements.txt    # 📦 List of dependencies
-└── README.md           # 📄 Project documentation
+├── app.py                       # 🖥️ Main Streamlit application
+├── model_utils.py               # 🧰 Shared utilities (incl. explanations)
+├── train_model.py               # ⚙️ Script to train and save the ML model
+├── model.pkl                    # 🧠 Saved model artifact
+├── scaler.pkl                   # ⚖️ Saved scaler artifact
+├── pages/
+│   ├── 1_⚙️_Model_Configuration.py
+│   └── 2_🧬_Patient_Input.py
+├── requirements.txt             # 📦 Dependencies
+└── README.md                    # 📄 You are here
 ```
 
 ---
 
-## 📊 Performance
+## 🧯 Troubleshooting
 
-The model is evaluated using standard metrics:
-*   **Accuracy**
-*   **Precision & Recall**
-*   **Confusion Matrix**
+<details>
+<summary><b>“Import could not be resolved” in VS Code</b></summary>
 
-*(Run `train_model.py` to see the latest performance metrics in the terminal.)*
+This usually means VS Code is using a different Python interpreter than the one where you installed dependencies.
+
+- Select your interpreter in VS Code (Python: Select Interpreter)
+- Then reinstall dependencies into that environment
+
+</details>
+
+<details>
+<summary><b>“model.pkl not found” / “scaler.pkl not found”</b></summary>
+
+Run the training script to regenerate them:
+
+```powershell
+python train_model.py
+```
+
+</details>
+
+<details>
+<summary><b>Streamlit launches but shows errors on prediction</b></summary>
+
+- Double-check your CSV column names match expected feature names
+- Make sure all feature values are numeric
+
+</details>
 
 ---

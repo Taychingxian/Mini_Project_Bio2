@@ -161,38 +161,6 @@ Bio2_Mini_Project/
 ├── requirements.txt             # 📦 Dependencies
 └── README.md                    # 📄 You are here
 ```
-
----
-
-## 🧯 Troubleshooting
-
-<details>
-<summary><b>“Import could not be resolved” in VS Code</b></summary>
-
-This usually means VS Code is using a different Python interpreter than the one where you installed dependencies.
-
-- Select your interpreter in VS Code (Python: Select Interpreter)
-- Then reinstall dependencies into that environment
-
-</details>
-
-<details>
-<summary><b>“model.pkl not found” / “scaler.pkl not found”</b></summary>
-
-Run the training script to regenerate them:
-
-```powershell
-python train_model.py
-```
-
-</details>
-
-<details>
-<summary><b>Streamlit launches but shows errors on prediction</b></summary>
-
-- Double-check your CSV column names match expected feature names
-- Make sure all feature values are numeric
-
 </details>
 
 ---
